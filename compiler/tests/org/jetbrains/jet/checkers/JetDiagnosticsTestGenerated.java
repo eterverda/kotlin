@@ -2315,6 +2315,7 @@ public class JetDiagnosticsTestGenerated extends AbstractDiagnosticsTestWithEage
         }
         
         @TestMetadata("compiler/testData/diagnostics/tests/functionLiterals")
+        @InnerTestClasses({FunctionLiterals.Return.class})
         public static class FunctionLiterals extends AbstractDiagnosticsTestWithEagerResolve {
             public void testAllFilesPresentInFunctionLiterals() throws Exception {
                 JetTestUtils.assertAllTestsPresentByMetadata(this.getClass(), "org.jetbrains.jet.generators.tests.GenerateTests", new File("compiler/testData/diagnostics/tests/functionLiterals"), Pattern.compile("^(.+)\\.kt$"), true);
@@ -2350,6 +2351,24 @@ public class JetDiagnosticsTestGenerated extends AbstractDiagnosticsTestWithEage
                 doTest("compiler/testData/diagnostics/tests/functionLiterals/unusedLiteral.kt");
             }
             
+            @TestMetadata("compiler/testData/diagnostics/tests/functionLiterals/return")
+            public static class Return extends AbstractDiagnosticsTestWithEagerResolve {
+                public void testAllFilesPresentInReturn() throws Exception {
+                    JetTestUtils.assertAllTestsPresentByMetadata(this.getClass(), "org.jetbrains.jet.generators.tests.GenerateTests", new File("compiler/testData/diagnostics/tests/functionLiterals/return"), Pattern.compile("^(.+)\\.kt$"), true);
+                }
+                
+                @TestMetadata("ForbiddenNonLocalReturnNoType.kt")
+                public void testForbiddenNonLocalReturnNoType() throws Exception {
+                    doTest("compiler/testData/diagnostics/tests/functionLiterals/return/ForbiddenNonLocalReturnNoType.kt");
+                }
+            }
+            
+            public static Test innerSuite() {
+                TestSuite suite = new TestSuite("FunctionLiterals");
+                suite.addTestSuite(FunctionLiterals.class);
+                suite.addTestSuite(Return.class);
+                return suite;
+            }
         }
         
         @TestMetadata("compiler/testData/diagnostics/tests/generics")
@@ -5129,7 +5148,7 @@ public class JetDiagnosticsTestGenerated extends AbstractDiagnosticsTestWithEage
             suite.addTestSuite(Deparenthesize.class);
             suite.addTest(Enum.innerSuite());
             suite.addTestSuite(Extensions.class);
-            suite.addTestSuite(FunctionLiterals.class);
+            suite.addTest(FunctionLiterals.innerSuite());
             suite.addTestSuite(Generics.class);
             suite.addTest(IncompleteCode.innerSuite());
             suite.addTest(Inference.innerSuite());
