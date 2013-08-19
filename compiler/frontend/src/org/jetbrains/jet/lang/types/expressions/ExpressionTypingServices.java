@@ -25,8 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jet.lang.descriptors.DeclarationDescriptor;
 import org.jetbrains.jet.lang.descriptors.FunctionDescriptor;
-import org.jetbrains.jet.lang.descriptors.impl.FunctionDescriptorUtil;
 import org.jetbrains.jet.lang.descriptors.ScriptDescriptor;
+import org.jetbrains.jet.lang.descriptors.impl.FunctionDescriptorUtil;
 import org.jetbrains.jet.lang.psi.*;
 import org.jetbrains.jet.lang.resolve.*;
 import org.jetbrains.jet.lang.resolve.calls.CallExpressionResolver;
@@ -36,7 +36,6 @@ import org.jetbrains.jet.lang.resolve.calls.context.ExpressionPosition;
 import org.jetbrains.jet.lang.resolve.scopes.JetScope;
 import org.jetbrains.jet.lang.resolve.scopes.WritableScope;
 import org.jetbrains.jet.lang.resolve.scopes.WritableScopeImpl;
-import org.jetbrains.jet.lang.types.CommonSupertypes;
 import org.jetbrains.jet.lang.types.ErrorUtils;
 import org.jetbrains.jet.lang.types.JetType;
 import org.jetbrains.jet.lang.types.JetTypeInfo;
@@ -146,16 +145,6 @@ public class ExpressionTypingServices {
         return expressionTypingFacade.getTypeInfo(expression, context);
     }
 
-    @NotNull
-    public JetType inferFunctionReturnType(@NotNull JetScope outerScope, @NotNull JetDeclarationWithBody function, @NotNull FunctionDescriptor functionDescriptor, @NotNull BindingTrace trace) {
-        Map<JetExpression, JetType> typeMap = collectReturnedExpressionsWithTypes(trace, outerScope, function, functionDescriptor);
-        Collection<JetType> types = typeMap.values();
-        return types.isEmpty()
-               ? KotlinBuiltIns.getInstance().getNothingType()
-               : CommonSupertypes.commonSupertype(types);
-    }
-
-
     /////////////////////////////////////////////////////////
 
     public void checkFunctionReturnType(@NotNull JetScope functionInnerScope, @NotNull JetDeclarationWithBody function, @NotNull FunctionDescriptor functionDescriptor, @NotNull DataFlowInfo dataFlowInfo, @Nullable JetType expectedReturnType, BindingTrace trace) {
@@ -223,7 +212,28 @@ public class ExpressionTypingServices {
         return r;
     }
 
-    private Map<JetExpression, JetType> collectReturnedExpressionsWithTypes(
+    @NotNull
+    public JetType getBodyExpressionType(
+            @NotNull BindingTrace trace,
+            @NotNull JetScope outerScope,
+            @NotNull JetDeclarationWithBody function,
+            @NotNull FunctionDescriptor functionDescriptor
+    ) {
+        JetExpression bodyExpression = function.getBodyExpression();
+        assert bodyExpression != null;
+        JetScope functionInnerScope = FunctionDescriptorUtil.getFunctionInnerScope(outerScope, functionDescriptor, trace);
+        JetTypeInfo typeInfo = getTypeInfo(functionInnerScope, bodyExpression, NO_EXPECTED_TYPE, DataFlowInfo.EMPTY, trace);
+        trace.record(STATEMENT, bodyExpression, false);
+        JetType type = typeInfo.getType();
+        if (type != null) {
+            return type;
+        }
+        else {
+            return ErrorUtils.createErrorType("Error function type");
+        }
+    }
+
+    private Map<JetExpression, JetType> collectReturnedExpressionsWithTypes0(
             final @NotNull BindingTrace trace,
             JetScope outerScope,
             final JetDeclarationWithBody function,
@@ -269,7 +279,7 @@ public class ExpressionTypingServices {
             trace.record(STATEMENT, returnedExpression, false);
             if (cachedType != null) {
                 typeMap.put(returnedExpression, cachedType);
-            } 
+            }
             else {
                 typeMap.put(returnedExpression, ErrorUtils.createErrorType("Error function type"));
             }
