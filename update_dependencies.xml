@@ -127,6 +127,9 @@
         <!-- Guava 12 sources-->
         <get-maven-library prefix="com/google/guava" lib="guava" version="12.0" bin="false"/>
 
+        <!-- protobuf sources-->
+        <get-maven-library prefix="com/google/protobuf" lib="protobuf-java" version="2.4.1" bin="false"/>
+
         <!-- ASM 4 -->
         <get-asm4-and-rename-packages/>
     </target>
