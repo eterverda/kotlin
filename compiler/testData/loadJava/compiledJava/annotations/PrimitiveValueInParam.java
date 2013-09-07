@@ -3,30 +3,29 @@ package test;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-// TODO: remove comments when fix in idea will be accepted
 public interface PrimitiveValueInParam {
 
     public @interface Ann {
         int i();
-        // TODO short s();
-        // TODO byte b();
+        short s();
+        byte b();
         long l();
         double d();
         float f();
         boolean bool();
-        // TODO char c();
+        char c();
         String str();
     }
 
     @Ann(
             i = 1,
-            //s = 1,
-            //b = 1,
-            l = 1l,
-            d = 1.0,
-            f = 1f,
+            s = 2,
+            b = 3,
+            l = 4l,
+            d = 5.0,
+            f = 6f,
             bool = true,
-            //c = 'c',
+            c = 'c',
             str = "str"
     )
     class A { }

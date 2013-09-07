@@ -128,12 +128,12 @@ public final class JavaAnnotationResolver {
 
 
         for (JavaAnnotationArgument argument : javaAnnotation.getArguments()) {
-            CompileTimeConstant value = argumentResolver.resolveAnnotationArgument(fqName, argument, postponedTasks);
-            if (value == null) continue;
-
             Name name = argument.getName();
             ValueParameterDescriptor descriptor = DescriptorResolverUtils.getAnnotationParameterByName(
                     name == null ? DEFAULT_ANNOTATION_MEMBER_NAME : name, annotationClass);
+            CompileTimeConstant value = argumentResolver.
+                    resolveAnnotationArgument(fqName, argument, descriptor == null ? null : descriptor.getType(), postponedTasks);
+            if (value == null) continue;
             if (descriptor != null) {
                 annotation.setValueArgument(descriptor, value);
             }

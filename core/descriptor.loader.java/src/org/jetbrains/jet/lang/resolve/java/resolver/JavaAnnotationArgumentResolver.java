@@ -69,10 +69,11 @@ public final class JavaAnnotationArgumentResolver {
     public CompileTimeConstant<?> resolveAnnotationArgument(
             @NotNull FqName annotationFqName,
             @NotNull JavaAnnotationArgument argument,
+            @Nullable JetType expectedType,
             @NotNull PostponedTasks postponedTasks
     ) {
         if (argument instanceof JavaLiteralAnnotationArgument) {
-            return resolveCompileTimeConstantValue(((JavaLiteralAnnotationArgument) argument).getValue(), null);
+            return resolveCompileTimeConstantValue(((JavaLiteralAnnotationArgument) argument).getValue(), expectedType);
         }
         // Enum
         else if (argument instanceof JavaReferenceAnnotationArgument) {
@@ -122,7 +123,7 @@ public final class JavaAnnotationArgumentResolver {
 
         List<CompileTimeConstant<?>> values = new ArrayList<CompileTimeConstant<?>>(elements.size());
         for (JavaAnnotationArgument argument : elements) {
-            CompileTimeConstant<?> value = resolveAnnotationArgument(annotationFqName, argument, taskList);
+            CompileTimeConstant<?> value = resolveAnnotationArgument(annotationFqName, argument, valueParameter.getType(), taskList);
             values.add(value == null ? NullValue.NULL : value);
         }
 

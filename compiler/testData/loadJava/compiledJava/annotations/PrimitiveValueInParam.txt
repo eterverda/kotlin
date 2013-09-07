@@ -2,17 +2,20 @@ package test
 
 public trait PrimitiveValueInParam : java.lang.Object {
     
-    test.PrimitiveValueInParam.Ann(bool = true: jet.Boolean, d = 1.0.toDouble(): jet.Double, f = 1.0.toFloat(): jet.Float, i = 1.toInt(): jet.Int, l = 1.toLong(): jet.Long, str = "str": jet.String) public open class A : java.lang.Object {
+    test.PrimitiveValueInParam.Ann(b = 3.toByte(): jet.Byte, bool = true: jet.Boolean, c = #99(c): jet.Char, d = 5.0.toDouble(): jet.Double, f = 6.0.toFloat(): jet.Float, i = 1.toInt(): jet.Int, l = 4.toLong(): jet.Long, s = 2.toShort(): jet.Short, str = "str": jet.String) public open class A : java.lang.Object {
         public constructor A()
     }
     
     public final annotation class Ann : jet.Annotation {
-        public constructor Ann(/*0*/ i: jet.Int, /*1*/ l: jet.Long, /*2*/ d: jet.Double, /*3*/ f: jet.Float, /*4*/ bool: jet.Boolean, /*5*/ str: jet.String?)
+        public constructor Ann(/*0*/ i: jet.Int, /*1*/ s: jet.Short, /*2*/ b: jet.Byte, /*3*/ l: jet.Long, /*4*/ d: jet.Double, /*5*/ f: jet.Float, /*6*/ bool: jet.Boolean, /*7*/ c: jet.Char, /*8*/ str: jet.String?)
+        public abstract fun b(): jet.Byte
         public abstract fun bool(): jet.Boolean
+        public abstract fun c(): jet.Char
         public abstract fun d(): jet.Double
         public abstract fun f(): jet.Float
         public abstract fun i(): jet.Int
         public abstract fun l(): jet.Long
+        public abstract fun s(): jet.Short
         public abstract fun str(): jet.String?
     }
 }
