@@ -152,6 +152,10 @@ public class PatternMatchingTypingVisitor extends ExpressionTypingVisitor {
         }
 
         if (!expressionTypes.isEmpty()) {
+            JetType expectedType = contextWithExpectedType.expectedType;
+            if (!noExpectedType(expectedType)) {
+                contextWithExpectedType.trace.record(BindingContext.EXPECTED_EXPRESSION_TYPE, expression, expectedType);
+            }
             return DataFlowUtils.checkImplicitCast(CommonSupertypes.commonSupertype(expressionTypes), expression, contextWithExpectedType, isStatement, commonDataFlowInfo);
         }
         return JetTypeInfo.create(null, commonDataFlowInfo);
@@ -277,7 +281,8 @@ public class PatternMatchingTypingVisitor extends ExpressionTypingVisitor {
         if (typeReferenceAfterIs == null) {
             return noChange(context);
         }
-        JetType type = context.expressionTypingServices.getTypeResolver().resolveType(context.scope, typeReferenceAfterIs, context.trace, true);
+        JetType type = context.expressionTypingServices.getTypeResolver().resolveType(context.scope, typeReferenceAfterIs, context.trace,
+                                                                                      true);
         if (!subjectType.isNullable() && type.isNullable()) {
             JetTypeElement element = typeReferenceAfterIs.getTypeElement();
             assert element instanceof JetNullableType : "element must be instance of " + JetNullableType.class.getName();

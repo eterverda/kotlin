@@ -26,6 +26,7 @@ import org.jetbrains.jet.lang.psi.*;
 import org.jetbrains.jet.lang.resolve.BindingContext;
 import org.jetbrains.jet.lang.resolve.BindingTrace;
 import org.jetbrains.jet.lang.types.JetType;
+import org.jetbrains.jet.lang.types.lang.KotlinBuiltIns;
 
 import java.util.Collection;
 
@@ -35,7 +36,16 @@ public final class WhenChecker {
     private WhenChecker() {
     }
 
-    public static boolean isWhenExhaustive(@NotNull JetWhenExpression expression, @NotNull BindingTrace trace) {
+    public static boolean mustHaveElse(@NotNull JetWhenExpression expression, @NotNull BindingTrace trace) {
+        Boolean isStatement = trace.get(BindingContext.STATEMENT, expression);
+        JetType expectedType = trace.get(BindingContext.EXPECTED_EXPRESSION_TYPE, expression);
+        if (Boolean.TRUE.equals(isStatement) || expectedType != null && KotlinBuiltIns.getInstance().isUnit(expectedType)) {
+            return false;
+        }
+        return !isWhenExhaustive(expression, trace);
+    }
+
+    private static boolean isWhenExhaustive(@NotNull JetWhenExpression expression, @NotNull BindingTrace trace) {
         JetExpression subjectExpression = expression.getSubjectExpression();
         if (subjectExpression == null) return false;
         JetType type = trace.get(BindingContext.EXPRESSION_TYPE, subjectExpression);
