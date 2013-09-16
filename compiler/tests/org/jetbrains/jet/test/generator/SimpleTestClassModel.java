@@ -36,6 +36,7 @@ public class SimpleTestClassModel implements TestClassModel {
             return o1.getName().compareTo(o2.getName());
         }
     };
+    public static final String ALL_FILES_PRESENT_TEST_PREFIX = "testAllFilesPresentIn";
     private final File rootFile;
     private final boolean recursive;
     private final Pattern filenamePattern;
@@ -122,7 +123,7 @@ public class SimpleTestClassModel implements TestClassModel {
 
         @Override
         public String getName() {
-            return "testAllFilesPresentIn" + testClassName;
+            return ALL_FILES_PRESENT_TEST_PREFIX + testClassName;
         }
 
         @Override
