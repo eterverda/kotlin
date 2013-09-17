@@ -1012,6 +1012,16 @@ public class QuickFixTestGenerated extends AbstractQuickFixTest {
             doTest("idea/testData/quickfix/override/beforeOverriddingMultipleFinalMethods.kt");
         }
         
+        @TestMetadata("beforeOverridingDelegatedMethod.kt")
+        public void testOverridingDelegatedMethod() throws Exception {
+            doTest("idea/testData/quickfix/override/beforeOverridingDelegatedMethod.kt");
+        }
+        
+        @TestMetadata("beforeOverridingFakeOverride.kt")
+        public void testOverridingFakeOverride() throws Exception {
+            doTest("idea/testData/quickfix/override/beforeOverridingFakeOverride.kt");
+        }
+        
         @TestMetadata("beforeOverridingFinalJavaMethod.kt")
         public void testOverridingFinalJavaMethod() throws Exception {
             doTest("idea/testData/quickfix/override/beforeOverridingFinalJavaMethod.kt");
