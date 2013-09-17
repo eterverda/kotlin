@@ -41,6 +41,8 @@ import org.jetbrains.jet.util.lazy.RecursionIntolerantLazyValue;
 
 import java.util.*;
 
+import static org.jetbrains.jet.lang.resolve.DelegationResolver.generateDelegationCandidates;
+
 public class LazyClassMemberScope extends AbstractLazyMemberScope<LazyClassDescriptor, ClassMemberDeclarationProvider> {
 
     @NotNull
@@ -269,9 +271,7 @@ public class LazyClassMemberScope extends AbstractLazyMemberScope<LazyClassDescr
                             typeReference,
                             resolveSession.getTrace(),
                             false);
-                    Collection<T> descriptors =
-                            DelegationResolver.generateDelegatedMembers(thisDescriptor, extractor.extract(supertype, name));
-                    result.addAll(descriptors);
+                    result.addAll(generateDelegationCandidates(thisDescriptor, supertype, extractor.extract(supertype, name)));
                 }
             }
         }
