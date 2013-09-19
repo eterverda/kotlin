@@ -3084,6 +3084,11 @@ public class JetDiagnosticsTestGenerated extends AbstractDiagnosticsTestWithEage
                 doTest("compiler/testData/diagnostics/tests/inference/noInformationForParameter.kt");
             }
             
+            @TestMetadata("nullableUpperBound.kt")
+            public void testNullableUpperBound() throws Exception {
+                doTest("compiler/testData/diagnostics/tests/inference/nullableUpperBound.kt");
+            }
+            
             @TestMetadata("opposite.kt")
             public void testOpposite() throws Exception {
                 doTest("compiler/testData/diagnostics/tests/inference/opposite.kt");

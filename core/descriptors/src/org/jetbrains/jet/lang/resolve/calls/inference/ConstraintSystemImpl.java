@@ -336,8 +336,11 @@ public class ConstraintSystemImpl implements ConstraintSystem {
         TypeConstraintsImpl typeConstraints = getTypeConstraints(parameterType);
         assert typeConstraints != null : "constraint should be generated only for type variables";
 
-        if (parameterType.isNullable()) {
-            // For parameter type T constraint T? <: Int? should transform to T <: Int
+        if (parameterType.isNullable() && boundKind != UPPER_BOUND) {
+            // For parameter type T:
+            // constraint T? = Int? should transform to T = Int
+            // constraint T? >: Int? should transform to T >: Int
+            // constraint T? <: Int? should leave constraining type nullable: T <: Int?
             constrainingType = TypeUtils.makeNotNullable(constrainingType);
         }
         typeConstraints.addBound(boundKind, constrainingType);
