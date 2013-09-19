@@ -48,8 +48,7 @@ public final class KotlinClassFileHeader {
         CLASS(JvmAnnotationNames.KOTLIN_CLASS),
         PACKAGE(JvmAnnotationNames.KOTLIN_PACKAGE),
         OLD_CLASS(JvmAnnotationNames.OLD_JET_CLASS_ANNOTATION),
-        OLD_PACKAGE(JvmAnnotationNames.OLD_JET_PACKAGE_CLASS_ANNOTATION),
-        NONE(null);
+        OLD_PACKAGE(JvmAnnotationNames.OLD_JET_PACKAGE_CLASS_ANNOTATION);
 
         @Nullable
         private final JvmClassName correspondingAnnotation;
@@ -62,7 +61,7 @@ public final class KotlinClassFileHeader {
             return this == CLASS || this == PACKAGE;
         }
 
-        @NotNull
+        @Nullable
         private static HeaderType byDescriptor(@NotNull String desc) {
             for (HeaderType headerType : HeaderType.values()) {
                 JvmClassName annotation = headerType.correspondingAnnotation;
@@ -73,7 +72,7 @@ public final class KotlinClassFileHeader {
                     return headerType;
                 }
             }
-            return NONE;
+            return null;
         }
     }
 
@@ -81,8 +80,8 @@ public final class KotlinClassFileHeader {
 
     @Nullable
     private String[] annotationData = null;
-    @NotNull
-    private HeaderType type = HeaderType.NONE;
+    @Nullable
+    private HeaderType type = null;
     @Nullable
     private JvmClassName jvmClassName = null;
 
@@ -90,7 +89,7 @@ public final class KotlinClassFileHeader {
         return version;
     }
 
-    @NotNull
+    @Nullable
     public HeaderType getType() {
         return type;
     }
@@ -99,7 +98,7 @@ public final class KotlinClassFileHeader {
      * @return true if this is a header for compiled Kotlin file with correct abi version which can be processed by compiler or the IDE
      */
     public boolean isCompatibleKotlinCompiledFile() {
-        return type.isValidAnnotation() && isAbiVersionCompatible(version);
+        return type != null && type.isValidAnnotation() && isAbiVersionCompatible(version);
     }
 
     /**
@@ -113,7 +112,7 @@ public final class KotlinClassFileHeader {
 
     @Nullable
     public String[] getAnnotationData() {
-        if (annotationData == null && type != HeaderType.NONE) {
+        if (annotationData == null && type != null) {
             LOG.error("Data for annotations " + type.correspondingAnnotation + " was not read.");
         }
         return annotationData;
@@ -133,14 +132,15 @@ public final class KotlinClassFileHeader {
         @Override
         public AnnotationVisitor visitAnnotation(final String desc, boolean visible) {
             HeaderType headerTypeByAnnotation = HeaderType.byDescriptor(desc);
-            if (headerTypeByAnnotation == HeaderType.NONE) {
+            if (headerTypeByAnnotation == null) {
                 return null;
             }
-            if (headerTypeByAnnotation.isValidAnnotation() && type.isValidAnnotation()) {
+            boolean alreadyFoundValid = type != null && type.isValidAnnotation();
+            if (headerTypeByAnnotation.isValidAnnotation() && alreadyFoundValid) {
                 throw new IllegalStateException("Both " + type.correspondingAnnotation + " and "
                                                  + headerTypeByAnnotation.correspondingAnnotation + " present!");
             }
-            if (!type.isValidAnnotation()) {
+            if (!alreadyFoundValid) {
                 type = headerTypeByAnnotation;
             }
             if (!headerTypeByAnnotation.isValidAnnotation()) {
