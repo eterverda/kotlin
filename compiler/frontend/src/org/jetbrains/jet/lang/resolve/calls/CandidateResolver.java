@@ -562,6 +562,7 @@ public class CandidateResolver {
         // Thus, we replace the parameters of our descriptor with fresh objects (perform alpha-conversion)
         CallableDescriptor candidateWithFreshVariables = FunctionDescriptorUtil.alphaConvertTypeParameters(candidate);
 
+        constraintSystem.setBoundsChecker(ConstraintsUtil.createBoundsChecker(candidateWithFreshVariables.getTypeParameters()));
 
         for (TypeParameterDescriptor typeParameterDescriptor : candidateWithFreshVariables.getTypeParameters()) {
             constraintSystem.registerTypeVariable(typeParameterDescriptor, Variance.INVARIANT); // TODO: variance of the occurrences

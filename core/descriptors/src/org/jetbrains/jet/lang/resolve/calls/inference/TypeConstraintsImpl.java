@@ -22,6 +22,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jet.lang.descriptors.TypeParameterDescriptor;
 import org.jetbrains.jet.lang.types.*;
 import org.jetbrains.jet.lang.types.checker.JetTypeChecker;
 
@@ -30,6 +31,8 @@ import java.util.Collections;
 import java.util.Set;
 
 public class TypeConstraintsImpl implements TypeConstraints {
+    private final TypeParameterDescriptor typeVariable;
+    private final BoundsChecker boundsChecker;
     private final Variance varianceOfPosition;
     private final Set<JetType> upperBounds = Sets.newLinkedHashSet();
     private final Set<JetType> lowerBounds = Sets.newLinkedHashSet();
@@ -37,7 +40,13 @@ public class TypeConstraintsImpl implements TypeConstraints {
 
     private Collection<JetType> resultValues;
 
-    public TypeConstraintsImpl(Variance varianceOfPosition) {
+    public TypeConstraintsImpl(
+            @NotNull TypeParameterDescriptor typeVariable,
+            @Nullable BoundsChecker boundsChecker,
+            @NotNull Variance varianceOfPosition
+    ) {
+        this.typeVariable = typeVariable;
+        this.boundsChecker = boundsChecker;
         this.varianceOfPosition = varianceOfPosition;
     }
 
@@ -85,7 +94,7 @@ public class TypeConstraintsImpl implements TypeConstraints {
     }
 
     /*package*/ TypeConstraintsImpl copy() {
-        TypeConstraintsImpl typeConstraints = new TypeConstraintsImpl(varianceOfPosition);
+        TypeConstraintsImpl typeConstraints = new TypeConstraintsImpl(typeVariable, boundsChecker, varianceOfPosition);
         typeConstraints.upperBounds.addAll(upperBounds);
         typeConstraints.lowerBounds.addAll(lowerBounds);
         typeConstraints.exactBounds.addAll(exactBounds);
@@ -158,9 +167,16 @@ public class TypeConstraintsImpl implements TypeConstraints {
         ContainerUtil.addIfNotNull(superTypeOfLowerBounds, values);
 
         Collection<JetType> upperBounds = withoutErrorTypes.getUpperBounds();
+        boolean makeNotNullable = !typeVariable.getUpperBoundsAsType().isNullable();
         for (JetType upperBound : upperBounds) {
             if (trySuggestion(upperBound)) {
                 return Collections.singleton(upperBound);
+            }
+            if (makeNotNullable && upperBound.isNullable()) {
+                JetType notNullableUpperBound = TypeUtils.makeNotNullable(upperBound);
+                if (trySuggestion(notNullableUpperBound)) {
+                    return Collections.singleton(notNullableUpperBound);
+                }
             }
         }
         //todo
@@ -207,6 +223,9 @@ public class TypeConstraintsImpl implements TypeConstraints {
                 return false;
             }
         }
+        if (boundsChecker != null && !boundsChecker.checkBoundsForSuggestion(typeVariable, suggestion)) {
+            return false;
+        }
         return true;
     }
 
@@ -214,7 +233,7 @@ public class TypeConstraintsImpl implements TypeConstraints {
     private TypeConstraints filterNotContainingErrorType(
             @NotNull Collection<JetType> values
     ) {
-        TypeConstraintsImpl typeConstraintsWithoutErrorType = new TypeConstraintsImpl(getVarianceOfPosition());
+        TypeConstraintsImpl typeConstraintsWithoutErrorType = new TypeConstraintsImpl(typeVariable, boundsChecker, getVarianceOfPosition());
         Collection<Pair<TypeConstraintsImpl.BoundKind, JetType>> allBounds = getAllBounds();
         for (Pair<TypeConstraintsImpl.BoundKind, JetType> pair : allBounds) {
             TypeConstraintsImpl.BoundKind boundKind = pair.getFirst();

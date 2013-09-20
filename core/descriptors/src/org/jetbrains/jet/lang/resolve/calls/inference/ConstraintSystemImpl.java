@@ -51,6 +51,7 @@ public class ConstraintSystemImpl implements ConstraintSystem {
     private final Set<ConstraintPosition> errorConstraintPositions = Sets.newHashSet();
     private final TypeSubstitutor resultingSubstitutor;
     private final TypeSubstitutor currentSubstitutor;
+    private BoundsChecker boundsChecker;
     private boolean hasErrorInConstrainingTypes;
 
     @Nullable
@@ -162,9 +163,14 @@ public class ConstraintSystemImpl implements ConstraintSystem {
         return constraintSystemStatus;
     }
 
+    public void setBoundsChecker(@Nullable BoundsChecker boundsChecker) {
+        assert typeParameterConstraints.isEmpty() : "BoundsChecker should be set before registering type variables";
+        this.boundsChecker = boundsChecker;
+    }
+
     @Override
     public void registerTypeVariable(@NotNull TypeParameterDescriptor typeVariable, @NotNull Variance positionVariance) {
-        typeParameterConstraints.put(typeVariable, new TypeConstraintsImpl(positionVariance));
+        typeParameterConstraints.put(typeVariable, new TypeConstraintsImpl(typeVariable, boundsChecker, positionVariance));
     }
 
     @Override
@@ -184,6 +190,7 @@ public class ConstraintSystemImpl implements ConstraintSystem {
             boolean recreateTypeConstraints
     ) {
         ConstraintSystemImpl newConstraintSystem = new ConstraintSystemImpl();
+        newConstraintSystem.setBoundsChecker(boundsChecker);
         for (Map.Entry<TypeParameterDescriptor, TypeConstraintsImpl> entry : typeParameterConstraints.entrySet()) {
             TypeParameterDescriptor typeParameter = entry.getKey();
             TypeConstraintsImpl typeConstraints = entry.getValue();

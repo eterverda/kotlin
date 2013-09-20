@@ -134,4 +134,21 @@ public class ConstraintsUtil {
             }
         });
     }
+
+    @NotNull
+    public static BoundsChecker createBoundsChecker(@NotNull Collection<TypeParameterDescriptor> typeVariables) {
+        final TypeSubstitutor substitutor = makeConstantSubstitutor(typeVariables, TypeUtils.DONT_CARE);
+        return new BoundsChecker() {
+            @Override
+            public boolean checkBoundsForSuggestion(
+                    @NotNull TypeParameterDescriptor typeVariable, @NotNull JetType suggestion
+            ) {
+                JetType declaredUpperBound = substitutor.substitute(typeVariable.getUpperBoundsAsType(), Variance.INVARIANT);
+                if (declaredUpperBound != null && !JetTypeChecker.INSTANCE.isSubtypeOf(suggestion, declaredUpperBound)) {
+                    return false;
+                }
+                return true;
+            }
+        };
+    }
 }

@@ -3444,6 +3444,11 @@ public class JetDiagnosticsTestGenerated extends AbstractDiagnosticsTestWithEage
                     doTest("compiler/testData/diagnostics/tests/inference/upperBounds/kt2856.kt");
                 }
                 
+                @TestMetadata("nonNullUpperBound.kt")
+                public void testNonNullUpperBound() throws Exception {
+                    doTest("compiler/testData/diagnostics/tests/inference/upperBounds/nonNullUpperBound.kt");
+                }
+                
                 @TestMetadata("useBoundsIfUnknownParameters.kt")
                 public void testUseBoundsIfUnknownParameters() throws Exception {
                     doTest("compiler/testData/diagnostics/tests/inference/upperBounds/useBoundsIfUnknownParameters.kt");
