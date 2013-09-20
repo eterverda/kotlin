@@ -19,7 +19,7 @@ package org.jetbrains.jet.cli.jvm.compiler;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jet.lang.resolve.kotlin.VirtualFileFinder;
+import org.jetbrains.jet.lang.resolve.java.VirtualFileFinder;
 import org.jetbrains.jet.lang.resolve.kotlin.header.KotlinClassFileHeader;
 import org.jetbrains.jet.lang.resolve.name.FqName;
 

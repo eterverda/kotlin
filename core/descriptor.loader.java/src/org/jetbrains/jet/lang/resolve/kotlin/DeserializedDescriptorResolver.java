@@ -16,7 +16,6 @@
 
 package org.jetbrains.jet.lang.resolve.kotlin;
 
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jet.descriptors.serialization.*;
@@ -95,8 +94,8 @@ public final class DeserializedDescriptorResolver {
     }
 
     @Nullable
-    public ClassDescriptor resolveClass(@NotNull ClassId id, @NotNull VirtualFile file) {
-        String[] data = readData(file);
+    public ClassDescriptor resolveClass(@NotNull ClassId id, @NotNull KotlinJvmBinaryClass kotlinClass) {
+        String[] data = readData(kotlinClass);
         if (data != null) {
             ClassData classData = JavaProtoBufUtil.readClassDataFrom(data);
             return createDeserializedClass(classData, id);
@@ -105,8 +104,8 @@ public final class DeserializedDescriptorResolver {
     }
 
     @Nullable
-    public JetScope createKotlinPackageScope(@NotNull NamespaceDescriptor descriptor, @NotNull VirtualFile file) {
-        String[] data = readData(file);
+    public JetScope createKotlinPackageScope(@NotNull NamespaceDescriptor descriptor, @NotNull KotlinJvmBinaryClass kotlinClass) {
+        String[] data = readData(kotlinClass);
         if (data != null) {
             PackageData packageData = JavaProtoBufUtil.readPackageDataFrom(data);
             return new DeserializedPackageMemberScope(storageManager, descriptor, annotationDeserializer, javaDescriptorFinder,
@@ -128,14 +127,14 @@ public final class DeserializedDescriptorResolver {
     }
 
     @Nullable
-    private String[] readData(@NotNull VirtualFile virtualFile) {
-        KotlinClassFileHeader header = KotlinClassFileHeader.readKotlinHeaderFromClassFile(virtualFile);
+    private String[] readData(@NotNull KotlinJvmBinaryClass kotlinClass) {
+        KotlinClassFileHeader header = KotlinClassFileHeader.readKotlinHeaderFromClassFile(kotlinClass.getFile());
         if (header instanceof SerializedDataHeader && header.isCompatibleKotlinCompiledFile()) {
             return ((SerializedDataHeader) header).getAnnotationData();
         }
 
         if (header != null) {
-            errorReporter.reportIncompatibleAbiVersion(header.getFqName(), virtualFile, header.getVersion());
+            errorReporter.reportIncompatibleAbiVersion(header.getFqName(), kotlinClass.getFile(), header.getVersion());
         }
         return null;
     }

@@ -18,7 +18,6 @@ package org.jetbrains.jet.lang.resolve.java.resolver;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jet.descriptors.serialization.ClassId;
@@ -35,7 +34,8 @@ import org.jetbrains.jet.lang.resolve.java.scope.JavaClassNonStaticMembersScope;
 import org.jetbrains.jet.lang.resolve.java.structure.JavaClass;
 import org.jetbrains.jet.lang.resolve.java.structure.JavaMethod;
 import org.jetbrains.jet.lang.resolve.kotlin.DeserializedDescriptorResolver;
-import org.jetbrains.jet.lang.resolve.kotlin.VirtualFileFinder;
+import org.jetbrains.jet.lang.resolve.kotlin.KotlinClassFinder;
+import org.jetbrains.jet.lang.resolve.kotlin.KotlinJvmBinaryClass;
 import org.jetbrains.jet.lang.resolve.name.FqName;
 import org.jetbrains.jet.lang.resolve.name.FqNameUnsafe;
 import org.jetbrains.jet.lang.resolve.name.Name;
@@ -72,14 +72,9 @@ public final class JavaClassResolver {
     private JavaSupertypeResolver supertypesResolver;
     private JavaFunctionResolver functionResolver;
     private DeserializedDescriptorResolver deserializedDescriptorResolver;
-    private VirtualFileFinder virtualFileFinder;
+    private KotlinClassFinder kotlinClassFinder;
 
     public JavaClassResolver() {
-    }
-
-    @Inject
-    public void setVirtualFileFinder(VirtualFileFinder virtualFileFinder) {
-        this.virtualFileFinder = virtualFileFinder;
     }
 
     @Inject
@@ -125,6 +120,11 @@ public final class JavaClassResolver {
     @Inject
     public void setFunctionResolver(JavaFunctionResolver functionResolver) {
         this.functionResolver = functionResolver;
+    }
+
+    @Inject
+    public void setKotlinClassFinder(KotlinClassFinder kotlinClassFinder) {
+        this.kotlinClassFinder = kotlinClassFinder;
     }
 
     @Nullable
@@ -190,11 +190,11 @@ public final class JavaClassResolver {
 
     private ClassDescriptor doResolveClass(@NotNull FqName qualifiedName, @NotNull PostponedTasks tasks) {
         //TODO: correct scope
-        VirtualFile file = virtualFileFinder.find(qualifiedName);
-        if (file != null) {
+        KotlinJvmBinaryClass kotlinClass = kotlinClassFinder.find(qualifiedName);
+        if (kotlinClass != null) {
             //TODO: code duplication
             //TODO: it is a hackish way to determine whether it is inner class or not
-            boolean isInnerClass = file.getName().contains("$");
+            boolean isInnerClass = kotlinClass.getFile().getName().contains("$");
             ClassOrNamespaceDescriptor containingDeclaration = resolveParentDescriptor(qualifiedName, isInnerClass);
             // class may be resolved during resolution of parent
             ClassDescriptor cachedDescriptor = classDescriptorCache.get(javaClassToKotlinFqName(qualifiedName));
@@ -205,7 +205,7 @@ public final class JavaClassResolver {
                     : "We can resolve the class, so it can't be 'unresolved' during parent resolution";
 
             ClassId id = ClassId.fromFqNameAndContainingDeclaration(qualifiedName.toUnsafe(), containingDeclaration);
-            ClassDescriptor deserializedDescriptor = deserializedDescriptorResolver.resolveClass(id, file);
+            ClassDescriptor deserializedDescriptor = deserializedDescriptorResolver.resolveClass(id, kotlinClass);
             if (deserializedDescriptor != null) {
                 cache(javaClassToKotlinFqName(qualifiedName), deserializedDescriptor);
                 return deserializedDescriptor;
