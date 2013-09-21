@@ -288,7 +288,7 @@ public class AsmUtil {
         iv.athrow();
     }
 
-    public static void genMethodThrow(MethodVisitor mv, String exception, String message) {
+    public static void genMethodThrow(@Nullable MethodVisitor mv, String exception, String message) {
         mv.visitCode();
         genThrow(mv, exception, message);
         mv.visitMaxs(-1, -1);
