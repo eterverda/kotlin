@@ -20,7 +20,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jet.descriptors.serialization.ClassId;
 import org.jetbrains.jet.lang.descriptors.*;
 import org.jetbrains.jet.lang.resolve.DescriptorFactory;
 import org.jetbrains.jet.lang.resolve.DescriptorUtils;
@@ -192,20 +191,7 @@ public final class JavaClassResolver {
         //TODO: correct scope
         KotlinJvmBinaryClass kotlinClass = kotlinClassFinder.find(qualifiedName);
         if (kotlinClass != null) {
-            //TODO: code duplication
-            //TODO: it is a hackish way to determine whether it is inner class or not
-            boolean isInnerClass = kotlinClass.getFile().getName().contains("$");
-            ClassOrNamespaceDescriptor containingDeclaration = resolveParentDescriptor(qualifiedName, isInnerClass);
-            // class may be resolved during resolution of parent
-            ClassDescriptor cachedDescriptor = classDescriptorCache.get(javaClassToKotlinFqName(qualifiedName));
-            if (cachedDescriptor != null) {
-                return cachedDescriptor;
-            }
-            assert !unresolvedCache.contains(qualifiedName.toUnsafe())
-                    : "We can resolve the class, so it can't be 'unresolved' during parent resolution";
-
-            ClassId id = ClassId.fromFqNameAndContainingDeclaration(qualifiedName.toUnsafe(), containingDeclaration);
-            ClassDescriptor deserializedDescriptor = deserializedDescriptorResolver.resolveClass(id, kotlinClass);
+            ClassDescriptor deserializedDescriptor = deserializedDescriptorResolver.resolveClass(kotlinClass);
             if (deserializedDescriptor != null) {
                 cache(javaClassToKotlinFqName(qualifiedName), deserializedDescriptor);
                 return deserializedDescriptor;
@@ -234,7 +220,6 @@ public final class JavaClassResolver {
             return alreadyResolved;
         }
 
-        //TODO: code duplication
         ClassOrNamespaceDescriptor containingDeclaration = resolveParentDescriptor(qualifiedName, javaClass.getOuterClass() != null);
         // class may be resolved during resolution of parent
         ClassDescriptor cachedDescriptor = classDescriptorCache.get(javaClassToKotlinFqName(qualifiedName));

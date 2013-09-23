@@ -35,6 +35,7 @@ import org.jetbrains.jet.lang.resolve.scopes.InnerClassesScopeWrapper;
 import org.jetbrains.jet.lang.resolve.scopes.JetScope;
 import org.jetbrains.jet.lang.resolve.scopes.receivers.ClassReceiver;
 import org.jetbrains.jet.lang.resolve.scopes.receivers.ReceiverValue;
+import org.jetbrains.jet.lang.types.ErrorUtils;
 import org.jetbrains.jet.lang.types.JetType;
 import org.jetbrains.jet.lang.types.TypeConstructor;
 import org.jetbrains.jet.lang.types.lang.KotlinBuiltIns;
@@ -65,7 +66,7 @@ public class DeserializedClassDescriptor extends ClassDescriptorBase implements 
     private final NestedClassDescriptors nestedObjects;
 
     private final Name name;
-    private final DeclarationDescriptor containingDeclaration;
+    private final NotNullLazyValue<DeclarationDescriptor> containingDeclaration;
     private final DeserializedClassTypeConstructor typeConstructor;
     private final Modality modality;
     private final Visibility visibility;
@@ -75,21 +76,19 @@ public class DeserializedClassDescriptor extends ClassDescriptorBase implements 
     private final DescriptorFinder descriptorFinder;
 
     public DeserializedClassDescriptor(
-            @NotNull ClassId classId,
             @NotNull StorageManager storageManager,
-            @NotNull DeclarationDescriptor containingDeclaration,
-            @NotNull NameResolver nameResolver,
             @NotNull AnnotationDeserializer annotationResolver,
             @NotNull final DescriptorFinder descriptorFinder,
-            @NotNull ProtoBuf.Class classProto,
-            @Nullable TypeDeserializer outerTypeDeserializer
+            @NotNull ClassData classData
     ) {
-        this.classId = classId;
-        this.classProto = classProto;
-        this.descriptorFinder = descriptorFinder;
-        this.name = nameResolver.getName(classProto.getName());
+        NameResolver nameResolver = classData.getNameResolver();
+        this.classProto = classData.getClassProto();
 
-        TypeDeserializer notNullTypeDeserializer = new TypeDeserializer(storageManager, outerTypeDeserializer, nameResolver,
+        this.classId = nameResolver.getClassId(classProto.getFqName());
+        this.descriptorFinder = descriptorFinder;
+        this.name = classId.getRelativeClassName().shortName();
+
+        TypeDeserializer notNullTypeDeserializer = new TypeDeserializer(storageManager, null, nameResolver,
                                                                         descriptorFinder, "Deserializer for class " + name, NONE);
         DescriptorDeserializer outerDeserializer = DescriptorDeserializer.create(storageManager, notNullTypeDeserializer,
                                                                                  this, nameResolver, annotationResolver);
@@ -97,7 +96,13 @@ public class DeserializedClassDescriptor extends ClassDescriptorBase implements 
         this.deserializer = outerDeserializer.createChildDeserializer(this, classProto.getTypeParameterList(), typeParameters);
         this.typeDeserializer = deserializer.getTypeDeserializer();
 
-        this.containingDeclaration = containingDeclaration;
+        this.containingDeclaration = storageManager.createLazyValue(new Computable<DeclarationDescriptor>() {
+            @Override
+            public DeclarationDescriptor compute() {
+                return computeContainingDeclaration();
+            }
+        });
+
         this.typeConstructor = new DeserializedClassTypeConstructor(typeParameters);
         this.memberScope = new DeserializedClassMemberScope(storageManager, this);
         this.innerClassesScope = new InnerClassesScopeWrapper(memberScope);
@@ -133,13 +138,13 @@ public class DeserializedClassDescriptor extends ClassDescriptorBase implements 
         this.nestedClasses = new NestedClassDescriptors(storageManager, stringSet(classProto.getNestedClassNameList(), nameResolver)) {
             @Override
             protected ClassDescriptor resolveNestedClass(@NotNull Name name) {
-                return descriptorFinder.findClass(DeserializedClassDescriptor.this.classId.createNestedClassId(name));
+                return descriptorFinder.findClass(classId.createNestedClassId(name));
             }
         };
         this.nestedObjects = new NestedClassDescriptors(storageManager, stringSet(classProto.getNestedObjectNameList(), nameResolver)) {
             @Override
             protected ClassDescriptor resolveNestedClass(@NotNull Name name) {
-                return descriptorFinder.findClass(DeserializedClassDescriptor.this.classId.createNestedClassId(name));
+                return descriptorFinder.findClass(classId.createNestedClassId(name));
             }
         };
     }
@@ -162,7 +167,15 @@ public class DeserializedClassDescriptor extends ClassDescriptorBase implements 
     @NotNull
     @Override
     public DeclarationDescriptor getContainingDeclaration() {
-        return containingDeclaration;
+        return containingDeclaration.compute();
+    }
+
+    @NotNull
+    private DeclarationDescriptor computeContainingDeclaration() {
+        ClassOrNamespaceDescriptor result = classId.isTopLevelClass() ?
+                                            descriptorFinder.findPackage(classId.getPackageFqName()) :
+                                            descriptorFinder.findClass(classId.getOuterClassId());
+        return result != null ? result : ErrorUtils.getErrorModule();
     }
 
     @NotNull
