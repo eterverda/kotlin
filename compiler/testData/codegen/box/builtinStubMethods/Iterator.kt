@@ -1,5 +1,5 @@
-class MyIterator<TT>(val v: TT): Iterator<TT> {
-    override fun next(): TT = v
+class MyIterator<T>(val v: T): Iterator<T> {
+    override fun next(): T = v
     override fun hasNext(): Boolean = true
 }
 
