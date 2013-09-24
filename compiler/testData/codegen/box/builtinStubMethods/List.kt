@@ -1,17 +1,17 @@
-class MyList<TT>: List<TT> {
+class MyList<T>: List<T> {
     override fun size(): Int = 0
     override fun isEmpty(): Boolean = true
     override fun contains(o: Any?): Boolean = false
-    override fun iterator(): Iterator<TT> = throw UnsupportedOperationException()
+    override fun iterator(): Iterator<T> = throw UnsupportedOperationException()
     override fun toArray(): Array<Any?> = throw UnsupportedOperationException()
     override fun <E> toArray(a: Array<out E>): Array<E> = throw UnsupportedOperationException()
     override fun containsAll(c: Collection<Any?>): Boolean = false
-    override fun get(index: Int): TT = throw IndexOutOfBoundsException()
+    override fun get(index: Int): T = throw IndexOutOfBoundsException()
     override fun indexOf(o: Any?): Int = -1
     override fun lastIndexOf(o: Any?): Int = -1
-    override fun listIterator(): ListIterator<TT> = throw UnsupportedOperationException()
-    override fun listIterator(index: Int): ListIterator<TT> = throw UnsupportedOperationException()
-    override fun subList(fromIndex: Int, toIndex: Int): List<TT> = this
+    override fun listIterator(): ListIterator<T> = throw UnsupportedOperationException()
+    override fun listIterator(index: Int): ListIterator<T> = throw UnsupportedOperationException()
+    override fun subList(fromIndex: Int, toIndex: Int): List<T> = this
     override fun hashCode(): Int = 0
     override fun equals(other: Any?): Boolean = false
 }
