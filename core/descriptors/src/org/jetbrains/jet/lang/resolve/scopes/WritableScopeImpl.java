@@ -492,19 +492,6 @@ public class WritableScopeImpl extends WritableScopeWithImports {
         return propertyDescriptorsByFieldNames;
     }
 
-    @Override
-    public PropertyDescriptor getPropertyByFieldReference(@NotNull Name fieldName) {
-        checkMayRead();
-
-        if (!fieldName.asString().startsWith("$")) {
-            throw new IllegalStateException();
-        }
-
-        PropertyDescriptor descriptor = getPropertyDescriptorsByFieldNames().get(fieldName);
-        if (descriptor != null) return descriptor;
-        return super.getPropertyByFieldReference(fieldName);
-    }
-
     public List<VariableDescriptor> getDeclaredVariables() {
         checkMayRead();
 
